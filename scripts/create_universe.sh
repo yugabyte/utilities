@@ -43,6 +43,7 @@ YB_HOME=/home/${USER}/yugabyte-db
 YB_MASTER_ADDRESSES=""
 
 zone_array=($ZONES)
+
 num_zones=`(IFS=$'\n';sort <<< "${zone_array[*]}") | uniq -c | wc -l`
 SSH_IPS_array=($SSH_IPS)
 
@@ -56,38 +57,16 @@ declare -a ZONE_MAP
 
 for node in $NODES
 do
-  if (( $num_zones > 1 )); then
-     z_found=0
-     for zname in ${ZONE_MAP[@]}
-     do
-         if [ "${zname}" == "${zone_array[$node_num]}" ]; then
-            z_found=1
-         fi
-     done
-     if [ $z_found -eq 0 ]; then
-        if (( $idx < RF )); then
-           ZONE_MAP[$idx]=${zone_array[$node_num]}
+   if (( $idx < $RF )); then
   	   if [ ! -z $YB_MASTER_ADDRESSES ]; then
   	      YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES,"
   	   fi
-           YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES$node:7100"
-           SSH_MASTER_IPS="$SSH_MASTER_IPS ${SSH_IPS_array[$node_num]}"
-           master_ips="$master_ips $node"
-           idx=`expr $idx + 1`
-        fi
-     fi
-  else
-     if (( $idx < $RF )); then
-  	if [ ! -z $YB_MASTER_ADDRESSES ]; then
-  	  YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES,"
-  	fi
-        YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES$node:7100"
-        SSH_MASTER_IPS="$SSH_MASTER_IPS ${SSH_IPS_array[$idx]}"
-        master_ips="$master_ips $node"
-        idx=`expr $idx + 1`
-     fi
-  fi
-  node_num=`expr $node_num + 1`;
+      YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES$node:7100"
+      SSH_MASTER_IPS="$SSH_MASTER_IPS ${SSH_IPS_array[$idx]}"
+      master_ips="$master_ips $node"
+      idx=`expr $idx + 1`
+   fi
+   node_num=`expr $node_num + 1`;
 done
 
 # Error out if we do not have sufficient nodes.
@@ -100,12 +79,7 @@ MASTER_ADDR_ARRAY=($master_ips)
 
 # Error out if number of AZ's is not 1 but not equal to RF
 if (( $num_zones > 1 )); then
-   if (( $num_zones < $RF )); then
-      echo "Error insufficient AZ's for master placement - must be equal to $RF"
-      exit 1
-   else
-      echo "Multi AZ placement detected. Nodes in ${zone_array[@]}"
-   fi
+         echo "Multi AZ placement detected. Nodes in ${zone_array[@]}"
 else
    echo "Single AZ placement detected - all nodes in ${zone_array[0]}"
 fi
