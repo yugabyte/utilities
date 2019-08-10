@@ -26,7 +26,7 @@ pushd ${YB_HOME}
 ###############################################################################
 echo "Setting appropriate YB ulimits.."
 
-cat > /tmp/99-yugabyte-limits.conf <<EOF
+cat > /home/${USER}/99-yugabyte-limits.conf <<EOF
 $USER	soft 	core	unlimited
 $USER	hard	core 	unlimited
 $USER  	soft	data	unlimited
