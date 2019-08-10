@@ -107,6 +107,7 @@ MASTER_CONF_CLOUDNAME="echo '--placement_cloud=${CLOUD_NAME}' >> ${YB_HOME}/mast
 TSERVER_CONF_CLOUDNAME="echo '--placement_cloud=${CLOUD_NAME}' >> ${YB_HOME}/tserver/conf/server.conf"
 MASTER_CONF_REGIONNAME="echo '--placement_region=${REGION}' >> ${YB_HOME}/master/conf/server.conf"
 TSERVER_CONF_REGIONNAME="echo '--placement_region=${REGION}' >> ${YB_HOME}/tserver/conf/server.conf"
+MASTER_YSQL_INIT_CMD="echo '--use_initial_sys_catalog_snapshot' >> ${YB_HOME}/master/conf/server.conf"
 if [ $num_zones -eq  1 ]; then
    MASTER_CONF_ZONENAME="echo '--placement_zone=${zone_array[0]}' >> ${YB_HOME}/master/conf/server.conf"
    TSERVER_CONF_ZONENAME="echo '--placement_zone=${zone_array[0]}' >> ${YB_HOME}/tserver/conf/server.conf"
@@ -119,7 +120,7 @@ do
      MASTER_CONF_ZONENAME="echo '--placement_zone=${zone_array[idx]}' >> ${YB_HOME}/master/conf/server.conf"
      TSERVER_CONF_ZONENAME="echo '--placement_zone=${zone_array[idx]}' >> ${YB_HOME}/tserver/conf/server.conf"
   fi
-  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$MASTER_CONF_CLOUDNAME ; $TSERVER_CONF_CLOUDNAME ; $MASTER_CONF_REGIONNAME ; $TSERVER_CONF_REGIONNAME ; $MASTER_CONF_ZONENAME ; $TSERVER_CONF_ZONENAME"
+  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$MASTER_CONF_CLOUDNAME ; $TSERVER_CONF_CLOUDNAME ; $MASTER_CONF_REGIONNAME ; $TSERVER_CONF_REGIONNAME ; $MASTER_CONF_ZONENAME ; $TSERVER_CONF_ZONENAME; $MASTER_YSQL_INIT_CMD"
   idx=`expr $idx + 1`
 done
 
@@ -158,7 +159,7 @@ do
 done
 
 ###############################################################################
-# Multi-AZ placement information. 
+# Multi-AZ placement information.
 ###############################################################################
 if [ $num_zones -gt 1 ]; then
    echo "Modifying placement information to ensure 1 master per AZ..."
@@ -173,7 +174,7 @@ if [ $num_zones -gt 1 ]; then
    PLACEMENT_CMD="${YB_HOME}/master/bin/yb-admin --master_addresses ${YB_MASTER_ADDRESSES} modify_placement_info ${PLACEMENT} ${RF}"
    ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@${SSH_IPS_array[0]} "$PLACEMENT_CMD"
    echo "Placement modification complete."
-fi 
+fi
 
 ###############################################################################
 # Start the tservers.
@@ -202,13 +203,3 @@ do
      echo "Created tserver crontab entry at [$node]"
   fi
 done
-
-###############################################################################
-# Run initdb on one of the nodes
-###############################################################################
-echo "Initializing YSQL on node ${MASTER_ADDR_ARRAY[0]} via initdb..."
-
-INITDB_CMD="YB_ENABLED_IN_POSTGRES=1 FLAGS_pggate_master_addresses=${YB_MASTER_ADDRESSES} ${YB_HOME}/tserver/postgres/bin/initdb -D /tmp/yb_pg_initdb_tmp_data_dir --no-locale --encoding=UTF8 -U postgres >>${YB_HOME}/tserver/ysql.out"
-ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@${SSH_IPS_array[1]} "$INITDB_CMD"
-echo "YSQL initialization complete."
-
