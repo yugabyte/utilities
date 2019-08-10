@@ -49,7 +49,7 @@ $USER	soft	nproc	12000
 $USER	hard	nproc	12000
 EOF
 
-sudo cp /tmp/99-yugabyte-limits.conf /etc/security/limits.d/99-yugabyte-limits.conf
+sudo cp /home/${USER}/99-yugabyte-limits.conf /etc/security/limits.d/99-yugabyte-limits.conf
 ###############################################################################
 # Download and install the software.
 ###############################################################################
