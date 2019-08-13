@@ -7,26 +7,16 @@
 ###############################################################################
 
 YB_HOME=/home/${USER}/yugabyte-db
-
-if [[ $# -eq 3 ]]; then
-   YB_EDITION=$1
-   YB_VERSION=$2
-   YB_DOWNLOAD_LOCATION=$3
-   if [[ "${YB_EDITION}" == "ce" ]]; then
-      YB_PACKAGE_URL="${YB_DOWNLOAD_LOCATION}/yugabyte-${YB_EDITION}-${YB_VERSION}-linux.tar.gz"
-   fi
-else
-   YB_VERSION=1.2.8.0
-   YB_PACKAGE_URL="https://downloads.yugabyte.com/yugabyte-ce-${YB_VERSION}-linux.tar.gz"
-fi
+YB_VERSION=$1
+YB_PACKAGE_URL="https://downloads.yugabyte.com/yugabyte-${YB_VERSION}-linux.tar.gz"
 YB_PACKAGE_NAME="${YB_PACKAGE_URL##*/}"
 
 ###############################################################################
 # Create the necessary directories.
 ###############################################################################
 mkdir -p ${YB_HOME}/yb-software
-mkdir -p ${YB_HOME}/master
-mkdir -p ${YB_HOME}/tserver
+mkdir -p ${YB_HOME}/master/conf
+mkdir -p ${YB_HOME}/tserver/conf
 
 # Save the current directory.
 pushd ${YB_HOME}
@@ -129,7 +119,6 @@ popd
 ###############################################################################
 echo "YB_HOME=${YB_HOME}" >> ${YB_HOME}/.yb_env.sh
 echo "export PATH='$PATH':${YB_HOME}/master/bin:${YB_HOME}/tserver/bin" >> ${YB_HOME}/.yb_env.sh
-echo "export YB_EDITION=${YB_EDITION}" >> ${YB_HOME}/.yb_env.sh
 echo "source ${YB_HOME}/.yb_env.sh" >> /home/${USER}/.bash_profile
 chmod 755 ${YB_HOME}/.yb_env.sh
 

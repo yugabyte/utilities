@@ -38,8 +38,7 @@ ZONES=$6
 # Get the credentials to connect to the nodes.
 SSH_USER=$7
 SSH_KEY_PATH=$8
-
-YB_HOME=/home/${USER}/yugabyte-db
+YB_HOME=/home/${SSH_USER}/yugabyte-db
 YB_MASTER_ADDRESSES=""
 
 zone_array=($ZONES)
@@ -152,7 +151,7 @@ do
   if [[ "$MASTER_CRON_OK" == *${MASTER_CRON_PATTERN}* ]]; then
      echo "Found master crontab entry at [$node]"
   else
-     ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node 'crontab -l | { cat; echo "*/3 * * * * /home/${USER}/start_master.sh > /dev/null 2>&1"; } | crontab - '
+     ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node 'crontab -l | { cat; echo "*/3 * * * * /home/${SSH_USER}/start_master.sh > /dev/null 2>&1"; } | crontab - '
      echo "Created master crontab entry at [$node]"
   fi
 done
@@ -198,7 +197,7 @@ do
   if [[ "$TSERVER_CRON_OK" == *${TSERVER_CRON_PATTERN}* ]]; then
      echo "Found tserver crontab entry at [$node]"
   else
-     ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node 'crontab -l | { cat; echo "*/3 * * * * /home/${USER}/start_tserver.sh > /dev/null 2>&1"; } | crontab - '
+     ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node 'crontab -l | { cat; echo "*/3 * * * * /home/${SSH_USER}/start_tserver.sh > /dev/null 2>&1"; } | crontab - '
      echo "Created tserver crontab entry at [$node]"
   fi
 done
