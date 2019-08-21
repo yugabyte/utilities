@@ -5,9 +5,9 @@
 # This is a simple script to install yugabyte-db software on a machine.
 #
 ###############################################################################
-
-YB_HOME=/home/${USER}/yugabyte-db
 YB_VERSION=$1
+SSH_USER=$2
+YB_HOME=/home/${SSH_USER}/yugabyte-db
 YB_PACKAGE_URL="https://downloads.yugabyte.com/yugabyte-${YB_VERSION}-linux.tar.gz"
 YB_PACKAGE_NAME="${YB_PACKAGE_URL##*/}"
 
