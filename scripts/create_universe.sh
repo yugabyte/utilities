@@ -206,13 +206,3 @@ do
      echo "Created tserver crontab entry at [$node]"
   fi
 done
-
-###############################################################################
-# Run initdb on one of the nodes
-###############################################################################
-echo "Initializing YSQL on node ${MASTER_ADDR_ARRAY[0]} via initdb..."
-
-INITDB_CMD="YB_ENABLED_IN_POSTGRES=1 FLAGS_pggate_master_addresses=${YB_MASTER_ADDRESSES} ${YB_HOME}/tserver/postgres/bin/initdb -D /tmp/yb_pg_initdb_tmp_data_dir --no-locale --encoding=UTF8 -U postgres >>${YB_HOME}/tserver/ysql.out"
-ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@${SSH_IPS_array[1]} "$INITDB_CMD"
-echo "YSQL initialization complete."
-
