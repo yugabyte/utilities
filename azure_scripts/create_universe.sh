@@ -50,8 +50,6 @@ done
 # Setup master addresses across all the nodes.
 ###############################################################################
 echo "Finalizing configuration..."
-echo "--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1" >> ${YB_HOME}/master/conf/server.conf
-echo "--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1" >> ${YB_HOME}/tserver/conf/server.conf
 echo "--master_addresses=${YB_MASTER_ADDRESSES}" >> ${YB_HOME}/master/conf/server.conf
 echo "--tserver_master_addrs=${YB_MASTER_ADDRESSES}" >> ${YB_HOME}/tserver/conf/server.conf
 echo "--replication_factor=${RF}" >> ${YB_HOME}/master/conf/server.conf
