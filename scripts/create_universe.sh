@@ -178,7 +178,6 @@ fi
 # Start the tservers.
 ###############################################################################
 echo "Starting tservers..."
-TSERVER_CONF_CMD="echo '--tserver_master_addrs=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/tserver/conf/server.conf"
 TSERVER_YB_MASTER_ENV="echo 'export YB_MASTER_ADDRESSES=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/.yb_env.sh"
 TSERVER_EXE=${YB_HOME}/tserver/bin/yb-tserver
 TSERVER_OUT=${YB_HOME}/tserver/tserver.out
