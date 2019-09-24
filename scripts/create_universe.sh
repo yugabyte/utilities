@@ -87,13 +87,18 @@ fi
 # Setup master addresses across all the nodes.
 ###############################################################################
 echo "Finalizing configuration..."
+TIMESTAMP=$(date +%s)
+ARCHIVE_MASTER_CONF="mv ${YB_HOME}/master/conf/server.conf ${YB_HOME}/master/conf/server.conf.${TIMESTAMP}"
+ARCHIVE_TSERVER_CONF="mv ${YB_HOME}/tserver/conf/server.conf ${YB_HOME}/tserver/conf/server.conf.${TIMESTAMP}"
+MASTER_DATA_DIRS_CMD="echo '--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1' >> ${YB_HOME}/master/conf/server.conf"
+TSERVER_DATA_DIRS_CMD="echo '--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1' >> ${YB_HOME}/tserver/conf/server.conf"
 MASTER_CONF_CMD="echo '--master_addresses=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/master/conf/server.conf"
 TSERVER_CONF_CMD="echo '--tserver_master_addrs=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/tserver/conf/server.conf"
 MASTER_CONF_RF_CMD="echo '--replication_factor=${RF}' >> ${YB_HOME}/master/conf/server.conf"
 TSERVER_CONF_RF_CMD="echo '--replication_factor=${RF}' >> ${YB_HOME}/tserver/conf/server.conf"
 for node in $SSH_IPS
 do
-  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$MASTER_CONF_CMD ; $TSERVER_CONF_CMD ; $MASTER_CONF_RF_CMD ; $TSERVER_CONF_RF_CMD"
+  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$ARCHIVE_MASTER_CONF ; $ARCHIVE_TSERVER_CONF; $MASTER_DATA_DIRS_CMD; $MASTER_CONF_CMD ; $TSERVER_DATA_DIRS_CMD; $TSERVER_CONF_CMD ; $MASTER_CONF_RF_CMD ; $TSERVER_CONF_RF_CMD"
 done
 
 ###############################################################################
@@ -106,6 +111,7 @@ MASTER_CONF_CLOUDNAME="echo '--placement_cloud=${CLOUD_NAME}' >> ${YB_HOME}/mast
 TSERVER_CONF_CLOUDNAME="echo '--placement_cloud=${CLOUD_NAME}' >> ${YB_HOME}/tserver/conf/server.conf"
 MASTER_CONF_REGIONNAME="echo '--placement_region=${REGION}' >> ${YB_HOME}/master/conf/server.conf"
 TSERVER_CONF_REGIONNAME="echo '--placement_region=${REGION}' >> ${YB_HOME}/tserver/conf/server.conf"
+MASTER_CONF_INIT_DB="echo '--use_initial_sys_catalog_snapshot' >> ${YB_HOME}/master/conf/server.conf"
 if [ $num_zones -eq  1 ]; then
    MASTER_CONF_ZONENAME="echo '--placement_zone=${zone_array[0]}' >> ${YB_HOME}/master/conf/server.conf"
    TSERVER_CONF_ZONENAME="echo '--placement_zone=${zone_array[0]}' >> ${YB_HOME}/tserver/conf/server.conf"
@@ -118,7 +124,7 @@ do
      MASTER_CONF_ZONENAME="echo '--placement_zone=${zone_array[idx]}' >> ${YB_HOME}/master/conf/server.conf"
      TSERVER_CONF_ZONENAME="echo '--placement_zone=${zone_array[idx]}' >> ${YB_HOME}/tserver/conf/server.conf"
   fi
-  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$MASTER_CONF_CLOUDNAME ; $TSERVER_CONF_CLOUDNAME ; $MASTER_CONF_REGIONNAME ; $TSERVER_CONF_REGIONNAME ; $MASTER_CONF_ZONENAME ; $TSERVER_CONF_ZONENAME"
+  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$MASTER_CONF_CLOUDNAME ; $TSERVER_CONF_CLOUDNAME ; $MASTER_CONF_REGIONNAME ; $TSERVER_CONF_REGIONNAME ; $MASTER_CONF_ZONENAME ; $TSERVER_CONF_ZONENAME ; $MASTER_CONF_INIT_DB"
   idx=`expr $idx + 1`
 done
 
@@ -178,6 +184,7 @@ fi
 # Start the tservers.
 ###############################################################################
 echo "Starting tservers..."
+TSERVER_CONF_CMD="echo '--tserver_master_addrs=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/tserver/conf/server.conf"
 TSERVER_YB_MASTER_ENV="echo 'export YB_MASTER_ADDRESSES=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/.yb_env.sh"
 TSERVER_EXE=${YB_HOME}/tserver/bin/yb-tserver
 TSERVER_OUT=${YB_HOME}/tserver/tserver.out
@@ -200,13 +207,3 @@ do
      echo "Created tserver crontab entry at [$node]"
   fi
 done
-
-###############################################################################
-# Run initdb on one of the nodes
-###############################################################################
-echo "Initializing YSQL on node ${MASTER_ADDR_ARRAY[0]} via initdb..."
-
-INITDB_CMD="YB_ENABLED_IN_POSTGRES=1 FLAGS_pggate_master_addresses=${YB_MASTER_ADDRESSES} ${YB_HOME}/tserver/postgres/bin/initdb -D /tmp/yb_pg_initdb_tmp_data_dir --no-locale --encoding=UTF8 -U postgres >>${YB_HOME}/tserver/ysql.out"
-ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@${SSH_IPS_array[1]} "$INITDB_CMD"
-echo "YSQL initialization complete."
-
