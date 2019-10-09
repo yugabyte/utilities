@@ -96,9 +96,11 @@ MASTER_CONF_CMD="echo '--master_addresses=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/
 TSERVER_CONF_CMD="echo '--tserver_master_addrs=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/tserver/conf/server.conf"
 MASTER_CONF_RF_CMD="echo '--replication_factor=${RF}' >> ${YB_HOME}/master/conf/server.conf"
 TSERVER_CONF_RF_CMD="echo '--replication_factor=${RF}' >> ${YB_HOME}/tserver/conf/server.conf"
+MASTER_CONF_DB_INIT_CMD="echo '--use_initial_sys_catalog_snapshot' >> ${YB_HOME}/master/conf/server.conf"
+
 for node in $SSH_IPS
 do
-  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$ARCHIVE_MASTER_CONF ; $ARCHIVE_TSERVER_CONF; $MASTER_DATA_DIRS_CMD; $MASTER_CONF_CMD ; $TSERVER_DATA_DIRS_CMD; $TSERVER_CONF_CMD ; $MASTER_CONF_RF_CMD ; $TSERVER_CONF_RF_CMD"
+  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$ARCHIVE_MASTER_CONF ; $ARCHIVE_TSERVER_CONF; $MASTER_DATA_DIRS_CMD; $MASTER_CONF_CMD ; $TSERVER_DATA_DIRS_CMD; $TSERVER_CONF_CMD ; $MASTER_CONF_RF_CMD ; $TSERVER_CONF_RF_CMD; $MASTER_CONF_DB_INIT_CMD"
 done
 
 ###############################################################################
