@@ -104,12 +104,6 @@ popd
 ###############################################################################
 mkdir -p ${YB_HOME}/data/disk0
 mkdir -p ${YB_HOME}/data/disk1
-if [[ ! -f master/conf/server.conf ]]; then
-   echo "--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1" >> master/conf/server.conf
-fi
-if [[ ! -f tserver/conf/server.conf ]]; then
-   echo "--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1" >> tserver/conf/server.conf
-fi
 # Restore the original directory.
 popd
 
