@@ -6,7 +6,8 @@
 #
 ###############################################################################
 YB_VERSION=$1
-YB_HOME=/home/${USER}/yugabyte-db
+SSH_USER=$2
+YB_HOME=/home/${SSH_USER}/yugabyte-db
 YB_PACKAGE_URL="https://downloads.yugabyte.com/yugabyte-${YB_VERSION}-linux.tar.gz"
 YB_PACKAGE_NAME="${YB_PACKAGE_URL##*/}"
 
@@ -104,6 +105,12 @@ popd
 ###############################################################################
 mkdir -p ${YB_HOME}/data/disk0
 mkdir -p ${YB_HOME}/data/disk1
+if [[ ! -f master/conf/server.conf ]]; then
+   echo "--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1" >> master/conf/server.conf
+fi
+if [[ ! -f tserver/conf/server.conf ]]; then
+   echo "--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1" >> tserver/conf/server.conf
+fi
 # Restore the original directory.
 popd
 
