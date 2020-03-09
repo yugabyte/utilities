@@ -72,6 +72,13 @@ client_rpm: prepare
 	    --architecture "$(ARCH)" \
 	    "build/yugabyte-$(YB_VERSION)/=/opt/yugabytedb-client"
 
+test_rpm:
+	@echo "Running tests for RPM. This may take upto 20 minutes."
+	time bash tests/test_rpm_packages.sh \
+            -v "$(YB_VERSION)" \
+            -s "$(YB_SERVER_RPM_REVISION)" \
+            -c "$(YB_CLIENT_RPM_REVISION)"
+
 deb: prepare
 	@echo "Building Debian package for yugabytedb version '$(YB_VERSION)', revision '$(YB_SERVER_DEB_REVISION)'"
 	fpm \
@@ -112,3 +119,10 @@ client_deb: prepare
 	    --package "$(DEB_PACKAGE_PATH)" \
 	    --architecture "$(ARCH)" \
 	    "build/yugabyte-$(YB_VERSION)/=/opt/yugabytedb-client"
+
+test_deb:
+	@echo "Running tests for Debian. This may take upto 20 minutes."
+	time bash tests/test_deb_packages.sh \
+            -v "$(YB_VERSION)" \
+            -s "$(YB_SERVER_DEB_REVISION)" \
+            -c "$(YB_CLIENT_DEB_REVISION)"

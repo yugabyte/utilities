@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+
+script_name="$0"
+script_basename="$(basename "${script_name}")"
+script_dirname="$(dirname "${script_name}")"
+
+source "${script_dirname}/utils.sh"
+
+packagedir="build/apt"
+test_log_file="${script_name}.log"
+
+# remove uninstalls given package by adding given extra_args to 'apt
+# remove' command
+# argument 1: package: should be either 'server' or 'client'
+# argument 2: extra_args: extra arguments to be passed to 'apt remove'
+# i.e. '--purge'
+remove() {
+  package="$1"
+  extra_args="$2"
+  info "remove: removing '${package}' package with '${extra_args}' to 'apt remove' command."
+  if [[ "${package}" == "server" ]]; then
+    sudo apt remove yugabytedb -y ${extra_args} >> "${test_log_file}"
+  elif [[ "${package}" == "client" ]]; then
+    sudo apt remove yugabytedb-client -y ${extra_args} >> "${test_log_file}"
+  else
+    echo "Invalid argument. Must be either 'server' or 'client'" 1>&2
+    exit 1
+  fi
+  info "remove: removed '${package}' package with '${extra_args}' to 'apt remove' command."
+}
+
+# cleanup removes both client and server packages. It removes data,
+# log as well as configuration directories. Deletes yugabyte_user
+cleanup() {
+  info "Running cleanup. This will remove client, server packages and other directories"
+  remove "server" "--purge"
+  remove "client" "--purge"
+  sudo rm -rf "${datadir}"
+  sudo rm -rf "${logdir}"
+  sudo rm -rf "${configdir}"
+  sudo userdel yugabyte
+  info "cleanup: completed."
+}
+
+# install installs server or client package based on the global
+# version, revision combination
+# argument 1: package: should be either 'server' or 'client'
+install(){
+  package="$1"
+  if [[ "${package}" == "server" ]]; then
+    package_name="yugabytedb_${yugabytedb_version}-${yb_server_revision}_amd64.deb"
+  elif [[ "${package}" == "client" ]]; then
+    package_name="yugabytedb-client_${yugabytedb_version}-${yb_client_revision}_amd64.deb"
+  else
+    echo "install: Invalid argument. Must be either 'server' or 'client'" 1>&2
+    exit 1
+  fi
+  info "install: installing '${package}: ${package_name}'."
+  sudo dpkg -i "${packagedir}/${package_name}"  >> "${test_log_file}"
+  info "install: installed '${package}: ${package_name}'."
+}
+
+
+while getopts "v:s:c:h" opt; do
+  case "${opt}" in
+    v)
+      yugabytedb_version="${OPTARG}"
+      ;;
+    s)
+      yb_server_revision="${OPTARG}"
+      ;;
+    c)
+      yb_client_revision="${OPTARG}"
+      ;;
+    h)
+      usage
+      exit
+      ;;
+    \?)
+      usage
+      exit
+      ;;
+  esac
+done
+
+if [[ -z "${yugabytedb_version}" || -z "${yb_server_revision}" || -z "${yb_client_revision}" ]]; then
+  usage "Any of the 'yugabytedb_version', 'server_revision', 'client_revision' cannot be blank."
+  exit 1
+fi
+
+cleanup
+
+# START of test 1, 3, 5
+install "server"
+check_ownership
+check_symlinks "server"
+check_systemd_service
+ysqlsh -c '\l'
+
+install "client"
+check_ownership
+check_symlinks "client"
+check_systemd_service
+ysqlsh -c '\l'
+
+remove "server" "--purge"
+check_symlinks "client_only"
+cleanup
+# END of test 1, 3, 5
+
+# START of test 2, 4, 6
+install "client"
+check_symlinks "client_only"
+
+install "server"
+check_ownership
+check_symlinks "client"
+check_systemd_service
+ysqlsh -c '\l'
+
+remove "client" "--purge"
+check_ownership
+check_symlinks "server"
+check_systemd_service
+ysqlsh -c '\l'
+cleanup
+# END of test 2, 4, 6
+
+echo -e "Total tests passed: '${Gre}${pass_count}${RCol}'"
+echo -e "Total tests failed: '${Red}${fail_count}${RCol}'"
+
+if [[ "${fail_count}" -gt "0" ]]; then
+  exit 1
+else
+  exit 0
+fi
