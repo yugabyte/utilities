@@ -16,8 +16,8 @@ DEB_PACKAGE_PATH = build/apt/
 
 download:
 	@echo "Downloading YugaByte release tars for the version $(YB_VERSION)"
-	wget --directory-prefix "build" $(DOWNLOADS_URL)/$(SERVER_TAR_NAME)
-	wget --directory-prefix "build" $(DOWNLOADS_URL)/$(CLIENT_TAR_NAME)
+	wget --progress "dot:giga" --directory-prefix "build" $(DOWNLOADS_URL)/$(SERVER_TAR_NAME)
+	wget --progress "dot:giga" --directory-prefix "build" $(DOWNLOADS_URL)/$(CLIENT_TAR_NAME)
 
 prepare:
 	@echo "Creating target directories for the packages."
@@ -27,7 +27,7 @@ prepare:
 prepare_server: prepare
 	@echo "Extracting the release tar '$(SERVER_TAR_NAME)' for server package."
 	mkdir -p build/server-$(YB_VERSION)
-	tar -xvzf build/$(SERVER_TAR_NAME) -C build/server-$(YB_VERSION) --strip-components 1
+	tar -xzf build/$(SERVER_TAR_NAME) -C build/server-$(YB_VERSION) --strip-components 1
 
 rpm: prepare_server
 	@echo "Building RPM package for yugabytedb version '$(YB_VERSION)', revision '$(YB_SERVER_RPM_REVISION)'"
@@ -58,7 +58,7 @@ rpm: prepare_server
 prepare_client: prepare
 	@echo "Extracting the release tar '$(CLIENT_TAR_NAME)' for client package."
 	mkdir -p build/client-$(YB_VERSION)
-	tar -xvzf build/$(CLIENT_TAR_NAME) -C build/client-$(YB_VERSION) --strip-components 1
+	tar -xzf build/$(CLIENT_TAR_NAME) -C build/client-$(YB_VERSION) --strip-components 1
 
 client_rpm: prepare_client
 	@echo "Building RPM package for yugabytedb-client version '$(YB_VERSION)', revision '$(YB_SERVER_RPM_REVISION)'"

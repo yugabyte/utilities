@@ -1,0 +1,37 @@
+name: "Build and test RPM packages"
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - "packages/**"
+    - ".github/workflows/packages-*.yaml"
+  pull_request:
+    paths:
+    - "packages/**"
+    - ".github/workflows/packages-*.yaml"
+jobs:
+  rpm-build-and-test:
+    strategy:
+      matrix:
+        image:
+        - "jrei/systemd-centos:7"
+        - "jrei/systemd-fedora:latest"
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: "Start docker container"
+      run: docker run -d --name rpm-test-runner --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v $(pwd):/workspace --workdir /workspace/packages ${{ matrix.image }}
+    # Workaround for failing yum commands on Fedora
+    - name: "Update yum cache on Fedora"
+      if: contains(matrix.image, 'fedora')
+      run: docker exec rpm-test-runner bash -c 'yum check-update || true'
+    - name: "Setup required packages"
+      run: docker exec rpm-test-runner bash -c './build/bootstrap_rpm_ci.sh'
+    - name: "Build the server and client packages"
+      run: docker exec rpm-test-runner bash -c 'source ${HOME}/.bashrc; make download && make rpm client_rpm'
+    - name: "Run the tests"
+      run: docker exec rpm-test-runner bash -c 'make test_rpm'
+    - name: "Stop the container"
+      run: docker rm -f rpm-test-runner
