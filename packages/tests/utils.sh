@@ -147,6 +147,48 @@ check_ui() {
   fi
 }
 
+# check_ysqlsh loads the demo database using yugabyted demo command.
+# Runs basic SELECT query to check if the data is loaded successfully
+# and then deletes the database at the end.
+check_ysqlsh() {
+  ysqlsh_query="SELECT customer_id, company_name FROM customers WHERE customer_id = 'FAMIA' LIMIT 1"
+  expected_output="FAMIA,Familia Arquibaldo"
+
+  # TODO: this workaround for Python < 2.7.9 can be removed once fix
+  # for https://github.com/yugabyte/yugabyte-db/issues/3993 is
+  # released
+  if [[ "$(python -c "import sys; print(sys.version_info < (2, 7, 9))")" == "True" ]]; then
+    info "check_ysqlsh: found '$(python --version)' which is older than '2.7.9'."
+    query_output_file="/tmp/ysqlsh_query.out"
+    info "check_ysqlsh: writing the ysqlsh query output to '${query_output_file}'."
+
+    echo "\copy (${ysqlsh_query}) To '${query_output_file}' With CSV" \
+      | sudo -u "${yugabyte_user}" yugabyted demo connect --config "${configdir}/yugabytedb.conf"
+
+    ysqlsh_output="$(cat ${query_output_file})"
+  else
+    echo "\q" | sudo -u "${yugabyte_user}" yugabyted demo connect --config "${configdir}/yugabytedb.conf"
+    info "check_ysqlsh: loaded the sample database using 'yugabyted demo connect'."
+
+    ysqlsh_output="$(
+      ysqlsh \
+	--quiet --no-align --tuples-only \
+        --field-separator "," \
+	--dbname "yb_demo_northwind" \
+	--command "${ysqlsh_query};"
+    )"
+
+    sudo -u "${yugabyte_user}" yugabyted demo destroy --config "${configdir}/yugabytedb.conf"
+    info "check_ysqlsh: deleted the sample database using 'yugabyted demo destroy'."
+  fi
+
+  if [[ "${ysqlsh_output}" == "${expected_output}" ]]; then
+    pass "check_ysqlsh: successfully retrieved data from the 'yb_demo_northwind' database."
+  else
+    fail "check_ysqlsh: failed to retrieve data from the 'yb_demo_northwind' database."
+  fi
+}
+
 # usage prints the help text for the test script. This assumes that
 # the only inputs are yugabytedb_version, server_revision,
 # client_revision

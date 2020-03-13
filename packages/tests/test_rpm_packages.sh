@@ -91,14 +91,14 @@ check_ownership
 check_symlinks "server"
 check_systemd_service
 check_ui
-ysqlsh -c '\l'
+check_ysqlsh
 
 install "client"
 check_ownership
 check_symlinks "client"
 check_systemd_service
 check_ui
-ysqlsh -c '\l'
+check_ysqlsh
 
 remove "server" "--purge"
 check_symlinks "client_only"
@@ -114,14 +114,14 @@ check_ownership
 check_symlinks "client"
 check_systemd_service
 check_ui
-ysqlsh -c '\l'
+check_ysqlsh
 
 remove "client" "--purge"
 check_ownership
 check_symlinks "server"
 check_systemd_service
 check_ui
-ysqlsh -c '\l'
+check_ysqlsh
 cleanup
 # END of test 2, 4, 6
 
