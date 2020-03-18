@@ -6,8 +6,7 @@ script_dirname="$(dirname "${script_name}")"
 
 source "${script_dirname}/utils.sh"
 
-packagedir="build/apt"
-test_log_file="${script_name}.log"
+packagedir="$(pwd)/build/apt"
 
 # remove uninstalls given package by adding given extra_args to 'apt
 # remove' command
@@ -19,9 +18,9 @@ remove() {
   extra_args="$2"
   info "remove: removing '${package}' package with '${extra_args}' to 'apt remove' command."
   if [[ "${package}" == "server" ]]; then
-    sudo apt remove yugabytedb -y ${extra_args} >> "${test_log_file}"
+    sudo apt remove --auto-remove yugabytedb -y ${extra_args}
   elif [[ "${package}" == "client" ]]; then
-    sudo apt remove yugabytedb-client -y ${extra_args} >> "${test_log_file}"
+    sudo apt remove --auto-remove yugabytedb-client -y ${extra_args}
   else
     echo "Invalid argument. Must be either 'server' or 'client'" 1>&2
     exit 1
@@ -56,7 +55,7 @@ install(){
     exit 1
   fi
   info "install: installing '${package}: ${package_name}'."
-  sudo dpkg -i "${packagedir}/${package_name}"  >> "${test_log_file}"
+  sudo apt install "${packagedir}/${package_name}" -y
   info "install: installed '${package}: ${package_name}'."
 }
 
@@ -95,12 +94,14 @@ install "server"
 check_ownership
 check_symlinks "server"
 check_systemd_service
+check_ui
 ysqlsh -c '\l'
 
 install "client"
 check_ownership
 check_symlinks "client"
 check_systemd_service
+check_ui
 ysqlsh -c '\l'
 
 remove "server" "--purge"
@@ -116,12 +117,14 @@ install "server"
 check_ownership
 check_symlinks "client"
 check_systemd_service
+check_ui
 ysqlsh -c '\l'
 
 remove "client" "--purge"
 check_ownership
 check_symlinks "server"
 check_systemd_service
+check_ui
 ysqlsh -c '\l'
 cleanup
 # END of test 2, 4, 6

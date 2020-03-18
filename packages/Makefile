@@ -4,10 +4,10 @@ SERVER_TAR_NAME = yugabyte-$(YB_VERSION)-linux.tar.gz
 CLIENT_TAR_NAME = yugabyte-client-$(YB_VERSION)-linux.tar.gz
 DOWNLOADS_URL = "https://downloads.yugabyte.com"
 
-YB_SERVER_RPM_REVISION = 1
-YB_CLIENT_RPM_REVISION = 1
-YB_SERVER_DEB_REVISION = 1
-YB_CLIENT_DEB_REVISION = 1
+YB_SERVER_RPM_REVISION = 2
+YB_CLIENT_RPM_REVISION = 2
+YB_SERVER_DEB_REVISION = 2
+YB_CLIENT_DEB_REVISION = 2
 
 ARCH = x86_64
 EL_VERSION = 7
@@ -48,6 +48,9 @@ rpm: prepare_server
 	    --package "$(RPM_PACKAGE_PATH)" \
 	    --architecture "$(ARCH)" \
 	    --config-files "/etc/yugabytedb/yugabytedb.conf" \
+	    --depends "python" \
+	    --depends "procps-ng" \
+	    --depends "java-headless = 1:1.8.0" \
 	    "build/server-$(YB_VERSION)/=/opt/yugabytedb" \
 	    "server/yugabytedb.conf=/etc/yugabytedb/" \
 	    "server/yugabyted.service=/lib/systemd/system/"
@@ -74,6 +77,7 @@ client_rpm: prepare_client
 	    --rpm-rpmbuild-define "_build_id_links none" \
 	    --package "$(RPM_PACKAGE_PATH)" \
 	    --architecture "$(ARCH)" \
+	    --depends "python" \
 	    "build/client-$(YB_VERSION)/=/opt/yugabytedb-client"
 
 test_rpm:
@@ -101,6 +105,9 @@ deb: prepare_server
 	    --package "$(DEB_PACKAGE_PATH)" \
 	    --architecture "$(ARCH)" \
 	    --config-files "/etc/yugabytedb/yugabytedb.conf" \
+	    --depends "python" \
+	    --depends "procps" \
+	    --depends "default-jre" \
 	    "build/server-$(YB_VERSION)/=/opt/yugabytedb" \
 	    "server/yugabytedb.conf=/etc/yugabytedb/"
 
@@ -122,6 +129,7 @@ client_deb: prepare_client
 	    --iteration "$(YB_CLIENT_DEB_REVISION)" \
 	    --package "$(DEB_PACKAGE_PATH)" \
 	    --architecture "$(ARCH)" \
+	    --depends "python" \
 	    "build/client-$(YB_VERSION)/=/opt/yugabytedb-client"
 
 test_deb:

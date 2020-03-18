@@ -5,6 +5,7 @@ file_owner_string="${yugabyte_user} ${yugabyte_user}"
 logdir="/var/log/yugabytedb"
 datadir="/var/lib/yugabytedb"
 configdir="/etc/yugabytedb"
+ui_endpoint="http://localhost:7200"
 
 Red="\e[31m"
 Gre="\e[32m"
@@ -119,6 +120,30 @@ check_systemd_service() {
     fail "check_systemd_service: yugabyted service is '${is_active}'."
   else
     pass "check_systemd_service: yugabyted service is '${is_active}'."
+  fi
+}
+
+# check_ui queries UI endpoint and checks if it retruns 200 HTTP
+# status code
+check_ui() {
+  info "check_ui: querying UI endpoint: '${ui_endpoint}'"
+  curl_output_file="$(pwd)/check_ui-$(date +%s)"
+  info "check_ui: writing the response body to '${curl_output_file}'"
+  response="$(
+    curl \
+      --write-out %{http_code} \
+      --silent --show-error \
+      --output ${curl_output_file} \
+      ${ui_endpoint}
+  )"
+  if [[ "${response}" == "200" ]]; then
+    pass "check_ui: UI endpoint '${ui_endpoint}' returned: '${response}'."
+  else
+    fail "check_ui: UI endpoint '${ui_endpoint}' returned: '${response}', expected: '200'."
+  fi
+  if [[ -f "${curl_output_file}" ]]; then
+    info "check_ui: contents of the response body:"
+    cat "${curl_output_file}"
   fi
 }
 
