@@ -1,0 +1,15 @@
+[Unit]
+Description=Daemon to start a single-node YugabyteDB process
+Documentation=https://docs.yugabyte.com
+
+[Service]
+Type=forking
+User=yugabyte
+ExecStart=/usr/bin/python /opt/yugabytedb/bin/yugabyted start --config /etc/yugabytedb/yugabytedb.conf
+PIDFile=/opt/yugabytedb/yugabyted.pid
+ExecStop=/usr/bin/python /opt/yugabytedb/bin/yugabyted stop --config /etc/yugabytedb/yugabytedb.conf
+TimeoutStopSec=10
+SuccessExitStatus=SIGKILL
+
+[Install]
+WantedBy=multi-user.target
