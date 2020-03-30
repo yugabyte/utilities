@@ -5,6 +5,24 @@ Documentation=https://docs.yugabyte.com
 [Service]
 Type=forking
 User=yugabyte
+
+# https://docs.yugabyte.com/latest/deploy/manual-deployment/system-config/#checking-ulimits
+LimitCORE=infinity
+LimitDATA=infinity
+LimitNICE=0
+LimitFSIZE=infinity
+LimitSIGPENDING=119934
+LimitMEMLOCK=64K
+LimitRSS=infinity
+LimitNOFILE=1048576
+LimitMSGQUEUE=819200
+LimitRTPRIO=0
+LimitSTACK=8192K
+LimitCPU=infinity
+LimitNPROC=12000
+LimitAS=infinity
+LimitLOCKS=infinity
+
 ExecStart=/usr/bin/python /opt/yugabytedb/bin/yugabyted start --config /etc/yugabytedb/yugabytedb.conf
 PIDFile=/var/lib/yugabytedb/yugabyte-data/yugabyted.pid
 TimeoutStartSec=5min
