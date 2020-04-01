@@ -1,12 +1,13 @@
 
-YB_VERSION ?= 2.1.1.0
+YB_VERSION ?= 2.1.5.0
+YB_CLIENT_VERSION ?= 2.1
 SERVER_TAR_NAME = yugabyte-$(YB_VERSION)-linux.tar.gz
-CLIENT_TAR_NAME = yugabyte-client-$(YB_VERSION)-linux.tar.gz
+CLIENT_TAR_NAME = yugabyte-client-$(YB_CLIENT_VERSION)-linux.tar.gz
 DOWNLOADS_URL = "https://downloads.yugabyte.com"
 
-YB_SERVER_RPM_REVISION = 2
+YB_SERVER_RPM_REVISION = 1
 YB_CLIENT_RPM_REVISION = 2
-YB_SERVER_DEB_REVISION = 2
+YB_SERVER_DEB_REVISION = 1
 YB_CLIENT_DEB_REVISION = 2
 
 ARCH = x86_64
@@ -57,16 +58,16 @@ rpm: prepare_server
 
 prepare_client: prepare
 	@echo "Extracting the release tar '$(CLIENT_TAR_NAME)' for client package."
-	mkdir -p build/client-$(YB_VERSION)
-	tar -xzf build/$(CLIENT_TAR_NAME) -C build/client-$(YB_VERSION) --strip-components 1
+	mkdir -p build/client-$(YB_CLIENT_VERSION)
+	tar -xzf build/$(CLIENT_TAR_NAME) -C build/client-$(YB_CLIENT_VERSION) --strip-components 1
 
 client_rpm: prepare_client
-	@echo "Building RPM package for yugabytedb-client version '$(YB_VERSION)', revision '$(YB_SERVER_RPM_REVISION)'"
+	@echo "Building RPM package for yugabytedb-client version '$(YB_CLIENT_VERSION)', revision '$(YB_CLIENT_RPM_REVISION)'"
 	fpm \
 	    --input-type "dir" \
 	    --output-type "rpm" \
 	    --name "yugabytedb-client" \
-	    --version "$(YB_VERSION)" \
+	    --version "$(YB_CLIENT_VERSION)" \
 	    --before-upgrade "client/before_upgrade.sh" \
 	    --after-upgrade "client/after_upgrade.sh" \
 	    --after-install "client/after_install.sh" \
@@ -78,12 +79,13 @@ client_rpm: prepare_client
 	    --package "$(RPM_PACKAGE_PATH)" \
 	    --architecture "$(ARCH)" \
 	    --depends "python" \
-	    "build/client-$(YB_VERSION)/=/opt/yugabytedb-client"
+	    "build/client-$(YB_CLIENT_VERSION)/=/opt/yugabytedb-client"
 
 test_rpm:
 	@echo "Running tests for RPM. This may take upto 20 minutes."
 	time bash tests/test_rpm_packages.sh \
-            -v "$(YB_VERSION)" \
+            -V "$(YB_VERSION)" \
+            -v "$(YB_CLIENT_VERSION)" \
             -s "$(YB_SERVER_RPM_REVISION)" \
             -c "$(YB_CLIENT_RPM_REVISION)"
 
@@ -114,12 +116,12 @@ deb: prepare_server
 # Debian client uses after_install.sh for both install and upgrade
 # scenarios
 client_deb: prepare_client
-	@echo "Building Debian package for yugabytedb-client version '$(YB_VERSION)', revision '$(YB_CLIENT_DEB_REVISION)'"
+	@echo "Building Debian package for yugabytedb-client version '$(YB_CLIENT_VERSION)', revision '$(YB_CLIENT_DEB_REVISION)'"
 	fpm \
 	    --input-type "dir" \
 	    --output-type "deb" \
 	    --name "yugabytedb-client" \
-	    --version "$(YB_VERSION)" \
+	    --version "$(YB_CLIENT_VERSION)" \
 	    --before-upgrade "client/before_upgrade.sh" \
 	    --after-upgrade "client/after_install.sh" \
 	    --after-install "client/after_install.sh" \
@@ -130,11 +132,12 @@ client_deb: prepare_client
 	    --package "$(DEB_PACKAGE_PATH)" \
 	    --architecture "$(ARCH)" \
 	    --depends "python" \
-	    "build/client-$(YB_VERSION)/=/opt/yugabytedb-client"
+	    "build/client-$(YB_CLIENT_VERSION)/=/opt/yugabytedb-client"
 
 test_deb:
 	@echo "Running tests for Debian. This may take upto 20 minutes."
 	time bash tests/test_deb_packages.sh \
-            -v "$(YB_VERSION)" \
+            -V "$(YB_VERSION)" \
+            -v "$(YB_CLIENT_VERSION)" \
             -s "$(YB_SERVER_DEB_REVISION)" \
             -c "$(YB_CLIENT_DEB_REVISION)"
