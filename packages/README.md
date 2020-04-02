@@ -128,3 +128,58 @@ for above packages.
   repo_gpgcheck=0
   EOF
   ```
+
+### Hosting Debian packages
+- Install the reprepro tool
+  ```console
+  $ sudo apt install reprepro
+  ```
+- Create a directory where the package repository will be created
+  ```console
+  $ mkdir -p build/apt/repo
+  ```
+- Create the repository configuration file
+  ```console
+  # Create the configuration directory
+  $ mkdir -p build/apt/repo/conf
+  ```
+  ```sh
+  # Create the configuration file
+  $ cat << EOF > build/apt/repo/conf/distributions
+  Origin: yugabyte
+  Label: yugabyte
+  Codename: yugabyte
+  Architectures: amd64
+  Components: main
+  Description: Yugabyte APT repository
+  EOF
+  ```
+- Run reprepro to include a `.deb` file to the APT repository
+  directory i.e. `build/apt/repo/`
+  ```console
+  $ cd build/apt
+  $ ls -1
+  yugabytedb_2.1.2.0-4_amd64.deb
+  …
+
+  # Add the .deb file to the repository
+  $ reprepro --basedir repo includedeb yugabyte yugabytedb_2.1.2.0-4_amd64.deb
+  Exporting indices...
+
+  $ ls -1 repo
+  conf
+  db
+  dists
+  pool
+  ```
+- The whole `build/apt/repo` directory can be synced with S3 or any
+  other hosting. Make sure the `conf`, `db` and `dists` directories
+  are present in `build/apt/repo` directory when running the `reprepro
+  includedeb …` command on a new `.deb` file next time.
+- To enable the newly created repository on a machine run the
+  following command on the target machine.
+  ```sh
+  $ sudo tee -a /etc/apt/sources.list.d/yugabyte.list << EOF
+  deb [trusted=yes] https://link-to-host.domain/apt yugabyte main
+  EOF
+  ```
