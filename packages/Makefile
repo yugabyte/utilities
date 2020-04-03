@@ -15,6 +15,16 @@ EL_VERSION = 7
 RPM_PACKAGE_PATH = build/yum/el$(EL_VERSION)-$(ARCH)/
 DEB_PACKAGE_PATH = build/apt/
 
+define COMMON_METADATA
+--url "https://www.yugabyte.com/" \
+--maintainer "oss-maintainers@yugabyte.com" \
+--vendor "Yugabyte, Inc." \
+--license "Apache License 2.0" \
+--description "The high-performance distributed SQL database for global, internet-scale apps." \
+--architecture "$(ARCH)" \
+
+endef
+
 download:
 	@echo "Downloading YugaByte release tars for the version $(YB_VERSION)"
 	wget --progress "dot:giga" --directory-prefix "build" $(DOWNLOADS_URL)/$(SERVER_TAR_NAME)
@@ -37,17 +47,15 @@ rpm: prepare_server
 	    --output-type "rpm" \
 	    --name "yugabytedb" \
 	    --version "$(YB_VERSION)" \
+	    $(COMMON_METADATA) \
 	    --before-upgrade "server/before_upgrade.sh" \
 	    --after-upgrade "server/after_upgrade.sh" \
 	    --after-install "server/after_install.sh" \
 	    --before-remove "server/rpm_before_remove.sh" \
 	    --after-remove "server/after_remove.sh" \
-	    --url "https://www.yugabyte.com/" \
-	    --maintainer "YugaByte" \
 	    --iteration "$(YB_SERVER_RPM_REVISION)" \
 	    --rpm-rpmbuild-define "_build_id_links none" \
 	    --package "$(RPM_PACKAGE_PATH)" \
-	    --architecture "$(ARCH)" \
 	    --config-files "/etc/yugabytedb/yugabytedb.conf" \
 	    --depends "python" \
 	    --depends "procps-ng" \
@@ -68,16 +76,14 @@ client_rpm: prepare_client
 	    --output-type "rpm" \
 	    --name "yugabytedb-client" \
 	    --version "$(YB_CLIENT_VERSION)" \
+	    $(COMMON_METADATA) \
 	    --before-upgrade "client/before_upgrade.sh" \
 	    --after-upgrade "client/after_upgrade.sh" \
 	    --after-install "client/after_install.sh" \
 	    --after-remove "client/after_remove.sh" \
-	    --url "https://www.yugabyte.com/" \
-	    --maintainer "YugaByte" \
 	    --iteration "$(YB_CLIENT_RPM_REVISION)" \
 	    --rpm-rpmbuild-define "_build_id_links none" \
 	    --package "$(RPM_PACKAGE_PATH)" \
-	    --architecture "$(ARCH)" \
 	    --depends "python" \
 	    "build/client-$(YB_CLIENT_VERSION)/=/opt/yugabytedb-client"
 
@@ -96,16 +102,14 @@ deb: prepare_server
 	    --output-type "deb" \
 	    --name "yugabytedb" \
 	    --version "$(YB_VERSION)" \
+	    $(COMMON_METADATA) \
 	    --before-upgrade "server/before_upgrade.sh" \
 	    --after-upgrade "server/deb_after_upgrade.sh" \
 	    --after-install "server/after_install.sh" \
 	    --after-remove "server/after_remove.sh" \
 	    --deb-systemd "server/yugabyted.service" \
-	    --url "https://www.yugabyte.com/" \
-	    --maintainer "YugaByte" \
 	    --iteration "$(YB_SERVER_DEB_REVISION)" \
 	    --package "$(DEB_PACKAGE_PATH)" \
-	    --architecture "$(ARCH)" \
 	    --config-files "/etc/yugabytedb/yugabytedb.conf" \
 	    --depends "python" \
 	    --depends "procps" \
@@ -122,15 +126,13 @@ client_deb: prepare_client
 	    --output-type "deb" \
 	    --name "yugabytedb-client" \
 	    --version "$(YB_CLIENT_VERSION)" \
+	    $(COMMON_METADATA) \
 	    --before-upgrade "client/before_upgrade.sh" \
 	    --after-upgrade "client/after_install.sh" \
 	    --after-install "client/after_install.sh" \
 	    --after-remove "client/after_remove.sh" \
-	    --url "https://www.yugabyte.com/" \
-	    --maintainer "YugaByte" \
 	    --iteration "$(YB_CLIENT_DEB_REVISION)" \
 	    --package "$(DEB_PACKAGE_PATH)" \
-	    --architecture "$(ARCH)" \
 	    --depends "python" \
 	    "build/client-$(YB_CLIENT_VERSION)/=/opt/yugabytedb-client"
 
