@@ -1,0 +1,35 @@
+name: "Build and test Debian packages"
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - "packages/**"
+    - ".github/workflows/packages-*.yaml"
+  pull_request:
+    paths:
+    - "packages/**"
+    - ".github/workflows/packages-*.yaml"
+jobs:
+  deb-build-and-test:
+    strategy:
+      matrix:
+        image:
+        - "jrei/systemd-ubuntu:16.04"
+        - "jrei/systemd-ubuntu:18.04"
+        - "jrei/systemd-debian:9"
+        - "jrei/systemd-debian:10"
+      fail-fast: false
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: "Start docker container"
+      run: docker run -d --name debian-test-runner --privileged -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v $(pwd):/workspace --workdir /workspace/packages ${{ matrix.image }}
+    - name: "Setup required packages"
+      run: docker exec debian-test-runner bash -c './build/bootstrap_deb_ci.sh'
+    - name: "Build the server and client packages"
+      run: docker exec debian-test-runner bash -c 'source ${HOME}/.bashrc; make download && make deb client_deb'
+    - name: "Run the tests"
+      run: docker exec debian-test-runner bash -c 'make test_deb'
+    - name: "Stop the container"
+      run: docker rm -f debian-test-runner
