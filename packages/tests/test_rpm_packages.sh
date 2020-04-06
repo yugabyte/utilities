@@ -6,8 +6,7 @@ script_dirname="$(dirname "${script_name}")"
 
 source "${script_dirname}/utils.sh"
 
-packagedir="build/yum/el7-x86_64"
-test_log_file="${script_name}.log"
+packagedir="$(pwd)/build/yum/el7-x86_64"
 
 # remove uninstalls given package
 # argument 1: package: should be either 'server' or 'client'
@@ -15,9 +14,9 @@ remove() {
   package="$1"
   info "remove: removing '${package}' package."
   if [[ "${package}" == "server" ]]; then
-    sudo yum remove yugabytedb -y >> "${test_log_file}"
+    sudo yum remove yugabytedb -y
   elif [[ "${package}" == "client" ]]; then
-    sudo yum remove yugabytedb-client -y >> "${test_log_file}"
+    sudo yum remove yugabytedb-client -y
   else
     echo "Invalid argument. Must be either 'server' or 'client'" 1>&2
     exit 1
@@ -52,7 +51,7 @@ install(){
     exit 1
   fi
   info "install: installing '${package}: ${package_name}'."
-  sudo yum install "${packagedir}/${package_name}" -y >> "${test_log_file}"
+  sudo yum install "${packagedir}/${package_name}" -y
   info "install: installed '${package}: ${package_name}'."
 }
 
@@ -91,12 +90,14 @@ install "server"
 check_ownership
 check_symlinks "server"
 check_systemd_service
+check_ui
 ysqlsh -c '\l'
 
 install "client"
 check_ownership
 check_symlinks "client"
 check_systemd_service
+check_ui
 ysqlsh -c '\l'
 
 remove "server" "--purge"
@@ -112,12 +113,14 @@ install "server"
 check_ownership
 check_symlinks "client"
 check_systemd_service
+check_ui
 ysqlsh -c '\l'
 
 remove "client" "--purge"
 check_ownership
 check_symlinks "server"
 check_systemd_service
+check_ui
 ysqlsh -c '\l'
 cleanup
 # END of test 2, 4, 6
