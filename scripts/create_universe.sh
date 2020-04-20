@@ -97,10 +97,12 @@ TSERVER_CONF_CMD="echo '--tserver_master_addrs=${YB_MASTER_ADDRESSES}' >> ${YB_H
 MASTER_CONF_RF_CMD="echo '--replication_factor=${RF}' >> ${YB_HOME}/master/conf/server.conf"
 TSERVER_CONF_RF_CMD="echo '--replication_factor=${RF}' >> ${YB_HOME}/tserver/conf/server.conf"
 MASTER_CONF_DB_INIT_CMD="echo '--use_initial_sys_catalog_snapshot' >> ${YB_HOME}/master/conf/server.conf"
+MASTER_CONF_MEM_CMD="echo '--default_memory_limit_to_ram_ratio=0.35' >> ${YB_HOME}/master/conf/server.conf"
+TSERVER_CONF_MEM_CMD="echo '--default_memory_limit_to_ram_ratio=0.6' >> ${YB_HOME}/tserver/conf/server.conf"
 
 for node in $SSH_IPS
 do
-  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$ARCHIVE_MASTER_CONF ; $ARCHIVE_TSERVER_CONF; $MASTER_DATA_DIRS_CMD; $MASTER_CONF_CMD ; $TSERVER_DATA_DIRS_CMD; $TSERVER_CONF_CMD ; $MASTER_CONF_RF_CMD ; $TSERVER_CONF_RF_CMD; $MASTER_CONF_DB_INIT_CMD"
+  ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@$node "$ARCHIVE_MASTER_CONF ; $ARCHIVE_TSERVER_CONF; $MASTER_DATA_DIRS_CMD; $MASTER_CONF_CMD ; $TSERVER_DATA_DIRS_CMD; $TSERVER_CONF_CMD ; $MASTER_CONF_RF_CMD ; $TSERVER_CONF_RF_CMD; $MASTER_CONF_DB_INIT_CMD; $MASTER_CONF_MEM_CMD; $TSERVER_CONF_MEM_CMD;"
 done
 
 ###############################################################################
@@ -186,7 +188,6 @@ fi
 # Start the tservers.
 ###############################################################################
 echo "Starting tservers..."
-TSERVER_CONF_CMD="echo '--tserver_master_addrs=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/tserver/conf/server.conf"
 TSERVER_YB_MASTER_ENV="echo 'export YB_MASTER_ADDRESSES=${YB_MASTER_ADDRESSES}' >> ${YB_HOME}/.yb_env.sh"
 TSERVER_EXE=${YB_HOME}/tserver/bin/yb-tserver
 TSERVER_OUT=${YB_HOME}/tserver/tserver.out
