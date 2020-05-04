@@ -52,6 +52,8 @@ sudo cp /tmp/99-yugabyte-limits.conf /etc/security/limits.d/99-yugabyte-limits.c
 ###############################################################################
 # Download and install the software.
 ###############################################################################
+echo "installing wget"
+sudo yum install -y wget
 echo "Fetching package $YB_PACKAGE_URL..."
 wget -q $YB_PACKAGE_URL
 
