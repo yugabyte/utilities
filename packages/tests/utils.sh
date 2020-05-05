@@ -197,11 +197,14 @@ usage() {
   cat <<USAGE
 $@
 
-Usage ${script_name} -v yugabytedb_version -s server_revision -c client_revision
+Usage ${script_name} -V yugabytedb_version -v yugabytedb_client_version -s server_revision -c client_revision
 
 Run tests for given package. Options:
-  -v: Version of YugabyteDB.
+  -V: Version of YugabyteDB.
     Example: "-v 2.0.1.0"
+
+  -v: Version of YugabyteDB client.
+    Example: "-v 2.1.1.0"
 
   -s: Build revision of server package.
     Example: "-s 1", "-s 13"

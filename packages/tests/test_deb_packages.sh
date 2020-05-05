@@ -49,7 +49,7 @@ install(){
   if [[ "${package}" == "server" ]]; then
     package_name="yugabytedb_${yugabytedb_version}-${yb_server_revision}_amd64.deb"
   elif [[ "${package}" == "client" ]]; then
-    package_name="yugabytedb-client_${yugabytedb_version}-${yb_client_revision}_amd64.deb"
+    package_name="yugabytedb-client_${yugabytedb_client_version}-${yb_client_revision}_amd64.deb"
   else
     echo "install: Invalid argument. Must be either 'server' or 'client'" 1>&2
     exit 1
@@ -60,10 +60,13 @@ install(){
 }
 
 
-while getopts "v:s:c:h" opt; do
+while getopts "V:v:s:c:h" opt; do
   case "${opt}" in
-    v)
+    V)
       yugabytedb_version="${OPTARG}"
+      ;;
+    v)
+      yugabytedb_client_version="${OPTARG}"
       ;;
     s)
       yb_server_revision="${OPTARG}"
@@ -82,8 +85,10 @@ while getopts "v:s:c:h" opt; do
   esac
 done
 
-if [[ -z "${yugabytedb_version}" || -z "${yb_server_revision}" || -z "${yb_client_revision}" ]]; then
-  usage "Any of the 'yugabytedb_version', 'server_revision', 'client_revision' cannot be blank."
+if [[ -z "${yugabytedb_version}" || -z "${yugabytedb_client_version}" \
+      || -z "${yb_server_revision}" || -z "${yb_client_revision}" ]]; then
+  usage "Any of the 'yugabytedb_version', 'yugabytedb_client_version', \
+'server_revision', 'client_revision' cannot be blank."
   exit 1
 fi
 
