@@ -34,16 +34,15 @@ echo "Connecting to nodes with ips: [$SSH_IPS]"
 
 # Get the list of AZs for the nodes.
 ZONES=$6
+zone_array=($ZONES)
 ZONES=$(echo "${ZONES}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-echo "Using zones: [ $ZONES ]"
+echo "Using zones: [ $ZONES ] and zone_array [ ${zone_array[@]} ]"
 
 # Get the credentials to connect to the nodes.
 SSH_USER=$7
 SSH_KEY_PATH=$8
 YB_HOME=/home/${SSH_USER}/yugabyte-db
 YB_MASTER_ADDRESSES=""
-
-zone_array=($ZONES)
 
 num_zones=`(IFS=$'\n';sort <<< "${zone_array[*]}") | uniq -c | wc -l`
 SSH_IPS_array=($SSH_IPS)
@@ -127,6 +126,7 @@ idx=0
 for node in $SSH_IPS
 do
   if [ $num_zones -gt 1 ]; then
+     echo "Using zone ${zone_array[idx]} for node $node"
      MASTER_CONF_ZONENAME="echo '--placement_zone=${zone_array[idx]}' >> ${YB_HOME}/master/conf/server.conf"
      TSERVER_CONF_ZONENAME="echo '--placement_zone=${zone_array[idx]}' >> ${YB_HOME}/tserver/conf/server.conf"
   fi
