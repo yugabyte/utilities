@@ -34,6 +34,8 @@ echo "Connecting to nodes with ips: [$SSH_IPS]"
 
 # Get the list of AZs for the nodes.
 ZONES=$6
+ZONES=$(echo "${ZONES}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+echo "Using zones: [ $ZONES ]"
 
 # Get the credentials to connect to the nodes.
 SSH_USER=$7
@@ -167,7 +169,7 @@ do
 done
 
 ###############################################################################
-# Multi-AZ placement information. 
+# Multi-AZ placement information.
 ###############################################################################
 if [ $num_zones -gt 1 ]; then
    echo "Modifying placement information to ensure 1 master per AZ..."
@@ -178,11 +180,13 @@ if [ $num_zones -gt 1 ]; then
   	  PLACEMENT="$PLACEMENT,"
       fi
       PLACEMENT="${PLACEMENT}${CLOUD_NAME}.${REGION}.$zone_name"
+      echo "Placement is $PLACEMENT"
    done
+   echo "Setting placement to $PLACEMENT"
    PLACEMENT_CMD="${YB_HOME}/master/bin/yb-admin --master_addresses ${YB_MASTER_ADDRESSES} modify_placement_info ${PLACEMENT} ${RF}"
    ssh -q -o "StrictHostKeyChecking no" -i ${SSH_KEY_PATH} ${SSH_USER}@${SSH_IPS_array[0]} "$PLACEMENT_CMD"
    echo "Placement modification complete."
-fi 
+fi
 
 ###############################################################################
 # Start the tservers.
