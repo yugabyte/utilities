@@ -183,3 +183,47 @@ for above packages.
   deb [trusted=yes] https://link-to-host.domain/apt yugabyte main
   EOF
   ```
+
+## Updating the version and revision of a package
+This section explains how to update package version as well as
+revision in case of a new release. This applies to both Debian and RPM
+packages.
+
+### yugabytedb package
+Variables from [`Makefile`](./Makefile) for server package
+(`yugabytedb`),
+- `YB_VERSION`: Version of YugabyteDB.
+- `YB_SERVER_RPM_REVISION`: Revision for the RPM package.
+- `YB_SERVER_DEB_REVISION`: Revision for the Debian package.
+
+Updating the version or revision,
+- Change in YugabyteDB version
+  - Set the `YB_VERSION` from `Makefile` to the version of YugabyteDB.
+  - Reset the revision of packages. Set value of
+    `YB_SERVER_RPM_REVISION` and `YB_SERVER_DEB_REVISION` to `1`.
+- Change in files from the [`server/`](./server/) directory
+  - If the change is related both Debian and RPM packages, then
+    increase the revision for both by one.
+  - If the change affects only one of the Debian or RPM, then increase
+    the respective revision value only.
+
+### yugabytedb-client package
+Variables from [`Makefile`](./Makefile) for client package
+(`yugabytedb-client`),
+- `YB_CLIENT_VERSION`: Version of YugabyteDB client tar.
+- `YB_CLIENT_RPM_REVISION`: Revision for the RPM package.
+- `YB_CLIENT_DEB_REVISION`: Revision for the Debian package.
+
+Updating the version or revision,
+- Change in YugabyteDB client tar version
+  - Set the `YB_CLIENT_VERSION` from `Makefile` to the version of
+    YugabyteDB client tar.
+  - Reset the revision of packages. Set value of
+    `YB_CLIENT_RPM_REVISION` and `YB_CLIENT_DEB_REVISION` to `1`.
+- Change in files from the [`client/`](./client/) directory
+  - If the change is related both Debian and RPM packages, then
+    increase the revision for both by one.
+  - If the change affects only one of the Debian or RPM, then increase
+    the respective revision value only.
+- New client tar with same version
+  - Increase the revision for both Debian and RPM packages by one.
