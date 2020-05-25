@@ -5,7 +5,7 @@
 # This script configures a list of nodes and creates a universe.
 #
 # Usage:
-#   create_universe.sh <rf> <config ips> <ssh ips> <ssh user> <ssh-key file>
+#   create_universe.sh <cloud_name> <region> <rf> <config ips> <ssh ips> <zones> <ssh user> <ssh-key file>
 #       <config ips> : space separated set of ips the nodes should use to talk to
 #                      each other
 #       <ssh ips>    : space separated set of ips used to ssh to the nodes in
@@ -47,33 +47,63 @@ YB_MASTER_ADDRESSES=""
 num_zones=`(IFS=$'\n';sort <<< "${zone_array[*]}") | uniq -c | wc -l`
 SSH_IPS_array=($SSH_IPS)
 
+# Error out if we do not have sufficient nodes.
+if (( ${#SSH_IPS_array[@]} < $RF )); then
+  echo "Error: insufficient nodes - got $idx node(s) but rf = $RF"
+  exit 1
+fi
+
 idx=0
-node_num=0
 master_ips=""
 ###############################################################################
 # Pick the masters as per the replication factor.
 ###############################################################################
 declare -a ZONE_MAP
 
-for node in $NODES
+used_zones=""
+node_array=($NODES)
+
+function add_master_ip() {
+  if [ ! -z $YB_MASTER_ADDRESSES ]; then
+     YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES,"
+  fi
+  YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES${node_array[$1]}:7100"
+  SSH_MASTER_IPS="$SSH_MASTER_IPS ${SSH_IPS_array[$1]}"
+  master_ips="$master_ips ${node_array[$1]}"
+}
+
+# Pick node's IP from every zone to ensure a master per zone
+# Necessary Condition for a master per zone
+# 1. RF must be greater than or equal to Zones.
+for node_index in ${!zone_array[@]}
 do
-   if (( $idx < $RF )); then
-  	   if [ ! -z $YB_MASTER_ADDRESSES ]; then
-  	      YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES,"
-  	   fi
-      YB_MASTER_ADDRESSES="$YB_MASTER_ADDRESSES$node:7100"
-      SSH_MASTER_IPS="$SSH_MASTER_IPS ${SSH_IPS_array[$idx]}"
-      master_ips="$master_ips $node"
-      idx=`expr $idx + 1`
-   fi
-   node_num=`expr $node_num + 1`;
+  if (( $idx < $RF )); then
+    if [[ "${used_zones}" == *"${zone_array[$node_index]}"* ]]; then
+      continue
+    fi
+
+    add_master_ip $node_index
+
+    idx=`expr $idx + 1`
+    used_zones="$used_zones ${zone_array[$node_index]}"
+  fi
 done
 
-# Error out if we do not have sufficient nodes.
-if (( $idx < $RF )); then
-  echo "Error: insufficient nodes - got $idx node(s) but rf = $RF"
-  exit 1
-fi
+# Pick node's IP and add, to ensure RF = Number of master
+# If RF > Number of Zones
+while (( $RF - $idx > 0 ))
+do
+  for node_index in ${!node_array[@]}
+  do
+    if ! [[ "${SSH_MASTER_IPS}" == *"${SSH_IPS_array[$node_index]}"* ]]; then
+      add_master_ip $node_index
+      break
+    fi
+  done
+
+  idx=`expr $idx + 1`
+done
+
 echo "Master addresses: $YB_MASTER_ADDRESSES"
 MASTER_ADDR_ARRAY=($master_ips)
 
