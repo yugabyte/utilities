@@ -172,14 +172,28 @@ done
 ###############################################################################
 echo "Enabling YSQL..."
 TSERVER_YSQL_PROXY_CMD="echo '--start_pgsql_proxy' >> ${YB_HOME}/tserver/conf/server.conf"
-idx=0
-for node in $SSH_IPS; do
+node_idx=0
+for node_idx in "${!SSH_IPS_array[@]}"; do
+  TSERVER_PGSQL_PROXY="echo '--pgsql_proxy_bind_address=0.0.0.0:5433' >> ${YB_HOME}/tserver/conf/server.conf"
+  TSERVER_CQL_PROXY="echo '--cql_proxy_bind_address=0.0.0.0:9042' >> ${YB_HOME}/tserver/conf/server.conf"
   ssh -q -o "StrictHostKeyChecking no" -i "${SSH_KEY_PATH}" \
-    "${SSH_USER}"@"${node}" "$TSERVER_YSQL_PROXY_CMD ; \
-    echo '--pgsql_proxy_bind_address=${MASTER_ADDR_ARRAY[idx]}:5433' >> \
-    ${YB_HOME}/tserver/conf/server.conf"
-  idx=$(( idx + 1 ))
+    "${SSH_USER}"@"${SSH_IPS_array[$node_idx]}" "$TSERVER_YSQL_PROXY_CMD ; $TSERVER_PGSQL_PROXY ; $TSERVER_CQL_PROXY"
+  node_idx=$(( node_idx + 1 ))
 done
+
+###############################################################################
+# Setup rpc_bind_addresses across all the nodes.
+###############################################################################
+echo "Setting RPC Bind Address..."
+node_idx=0
+for node_idx in "${!SSH_IPS_array[@]}"; do
+  MASTER_RPC_BINDADDR_CMD="echo '--rpc_bind_addresses=${node_array[$node_idx]}:7100' >> ${YB_HOME}/master/conf/server.conf"
+  TSERVER_RPC_BINDADDR_CMD="echo '--rpc_bind_addresses=${node_array[$node_idx]}:9100' >> ${YB_HOME}/tserver/conf/server.conf"
+  ssh -q -o "StrictHostKeyChecking no" -i "${SSH_KEY_PATH}" \
+    "${SSH_USER}"@"${SSH_IPS_array[$node_idx]}" "$MASTER_RPC_BINDADDR_CMD ; $TSERVER_RPC_BINDADDR_CMD ; "
+  node_idx=$(( node_idx + 1 ))
+done
+
 
 ###############################################################################
 # Start the masters.
