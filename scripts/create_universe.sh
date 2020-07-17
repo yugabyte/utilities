@@ -178,7 +178,6 @@ for node_idx in "${!SSH_IPS_array[@]}"; do
   TSERVER_CQL_PROXY="echo '--cql_proxy_bind_address=0.0.0.0:9042' >> ${YB_HOME}/tserver/conf/server.conf"
   ssh -q -o "StrictHostKeyChecking no" -i "${SSH_KEY_PATH}" \
     "${SSH_USER}"@"${SSH_IPS_array[$node_idx]}" "$TSERVER_YSQL_PROXY_CMD ; $TSERVER_PGSQL_PROXY ; $TSERVER_CQL_PROXY"
-  node_idx=$(( node_idx + 1 ))
 done
 
 ###############################################################################
@@ -191,7 +190,6 @@ for node_idx in "${!SSH_IPS_array[@]}"; do
   TSERVER_RPC_BINDADDR_CMD="echo '--rpc_bind_addresses=${node_array[$node_idx]}:9100' >> ${YB_HOME}/tserver/conf/server.conf"
   ssh -q -o "StrictHostKeyChecking no" -i "${SSH_KEY_PATH}" \
     "${SSH_USER}"@"${SSH_IPS_array[$node_idx]}" "$MASTER_RPC_BINDADDR_CMD ; $TSERVER_RPC_BINDADDR_CMD ; "
-  node_idx=$(( node_idx + 1 ))
 done
 
 
