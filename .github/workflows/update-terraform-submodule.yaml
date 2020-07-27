@@ -1,0 +1,32 @@
+name: Update terraform submodule
+
+on:
+  push:
+    paths:
+      - 'common_scripts/**'
+      - 'scripts/**'
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Trigger Repository Dispatch - yugabyte/terraform-gcp-yugabyte"
+        run: |
+          curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" \
+          -H "Accept: application/vnd.github.everest-preview+json" \
+          -H "Content-Type: application/json" https://api.github.com/repos/yugabyte/terraform-gcp-yugabyte/dispatches \
+          --data '{"event_type": "update-submodule"}'
+      
+      - name: "Trigger Repository Dispatch - yugabyte/terraform-aws-yugabyte"
+        run: |
+          curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" \
+          -H "Accept: application/vnd.github.everest-preview+json" \
+          -H "Content-Type: application/json" https://api.github.com/repos/yugabyte/terraform-aws-yugabyte/dispatches \
+          --data '{"event_type": "update-submodule"}'
+
+      - name: "Trigger Repository Dispatch - yugabyte/terraform-azure-yugabyte"
+        run: |
+          curl -XPOST -u "${{ secrets.PAT_USERNAME}}:${{secrets.PAT_TOKEN}}" \
+          -H "Accept: application/vnd.github.everest-preview+json" \
+          -H "Content-Type: application/json" https://api.github.com/repos/yugabyte/terraform-azure-yugabyte/dispatches \
+          --data '{"event_type": "update-submodule"}'
