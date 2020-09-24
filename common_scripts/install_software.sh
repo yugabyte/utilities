@@ -129,13 +129,28 @@ popd
 ###############################################################################
 # Create the data drives.
 ###############################################################################
-mkdir -p "${YB_HOME}/data/disk0"
-mkdir -p "${YB_HOME}/data/disk1"
+# AWS: Available on the instances with NVMe based instance store
+# disks. Example, m5d, i3.
+if [[ -d "${YB_HOME}/data/ephemeral-nvme0" ]]; then
+  data_dirs_list=""
+  for data_dir in "${YB_HOME}/data/ephemeral-nvme"*; do
+    if [[ -z "${data_dirs_list}" ]]; then
+      data_dirs_list="${data_dir}"
+    else
+      data_dirs_list="${data_dirs_list},${data_dir}"
+    fi
+  done
+else
+  mkdir -p "${YB_HOME}/data/disk0"
+  mkdir -p "${YB_HOME}/data/disk1"
+  data_dirs_list="${YB_HOME}/data/disk0,${YB_HOME}/data/disk1"
+fi
+
 if [[ ! -f master/conf/server.conf ]]; then
-  echo "--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1" >> master/conf/server.conf
+  echo "--fs_data_dirs=${data_dirs_list}" >> master/conf/server.conf
 fi
 if [[ ! -f tserver/conf/server.conf ]]; then
-  echo "--fs_data_dirs=${YB_HOME}/data/disk0,${YB_HOME}/data/disk1" >> tserver/conf/server.conf
+  echo "--fs_data_dirs=${data_dirs_list}" >> tserver/conf/server.conf
 fi
 # Restore the original directory.
 popd
