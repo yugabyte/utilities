@@ -1,24 +1,28 @@
 
-YB_VERSION ?= 2.1.5.0
-YB_CLIENT_VERSION ?= 2.1
-SERVER_TAR_NAME = yugabyte-$(YB_VERSION)-linux.tar.gz
+YB_RELEASE ?= 2.11.0.0-b7
+YB_VERSION = $(word 1, $(subst -b, ,$(YB_RELEASE)))
+YB_BUILD_NO = $(word 2, $(subst -b, ,$(YB_RELEASE)))
+YB_CLIENT_VERSION ?= 2.6
+ARCH ?= x86_64
+SERVER_TAR_NAME = yugabyte-$(YB_VERSION)-b$(YB_BUILD_NO)-linux-$(ARCH).tar.gz
 CLIENT_TAR_NAME = yugabyte-client-$(YB_CLIENT_VERSION)-linux.tar.gz
-DOWNLOADS_URL = "https://downloads.yugabyte.com"
+DOWNLOADS_BASE = https://downloads.yugabyte.com
+SERVER_URL = $(DOWNLOADS_BASE)/releases/$(YB_VERSION)/$(SERVER_TAR_NAME)
+CLIENT_URL = $(DOWNLOADS_BASE)/$(CLIENT_TAR_NAME)
 
 YB_SERVER_RPM_REVISION = 2
 YB_CLIENT_RPM_REVISION = 2
 YB_SERVER_DEB_REVISION = 2
 YB_CLIENT_DEB_REVISION = 2
 
-ARCH = x86_64
 EL_VERSION = 7
 RPM_PACKAGE_PATH = build/yum/el$(EL_VERSION)-$(ARCH)/
 DEB_PACKAGE_PATH = build/apt/
 
 download:
 	@echo "Downloading YugaByte release tars for the version $(YB_VERSION)"
-	wget --progress "dot:giga" --directory-prefix "build" $(DOWNLOADS_URL)/$(SERVER_TAR_NAME)
-	wget --progress "dot:giga" --directory-prefix "build" $(DOWNLOADS_URL)/$(CLIENT_TAR_NAME)
+	wget --progress "dot:giga" --directory-prefix "build" $(SERVER_URL)
+	wget --progress "dot:giga" --directory-prefix "build" $(CLIENT_URL)
 
 prepare:
 	@echo "Creating target directories for the packages."
