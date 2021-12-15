@@ -63,7 +63,7 @@ To create the packages for YugabyteDB as well client
   It's possible to download specific version by exporting the variable
   `YB_VERSION` with desired version.
   ```console
-  $ export YB_VERSION="2.0.11.0"
+  $ export YB_RELEASE="2.11.0.0-b7"
   $ make download
   …
   ```

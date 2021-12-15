@@ -8,5 +8,5 @@ yum install rubygems ruby-devel gcc redhat-rpm-config make rpm-build -y
 echo 'export PATH="$PATH:${HOME}/bin"' >> "${HOME}/.bashrc"
 source "${HOME}/.bashrc"
 
-gem install --no-document fpm
+gem install --no-document git:'<1.8.0' fpm
 fpm --version
