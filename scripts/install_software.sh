@@ -8,7 +8,7 @@ ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's
 YB_VERSION=$1
 # this query is paginated, so there's no guarantee we will find this release on the first page
 # needs improvement to walk through all pages
-YB_RELEASE=$(curl -s https://registry.hub.docker.com/v2/repositories/yugabytedb/yugabyte/tags |  grep -Eo "${YB_VERSION}-b[0-9]+")
+YB_RELEASE=$(curl -s https://registry.hub.docker.com/v2/repositories/yugabytedb/yugabyte/tags?page_size=300 |  grep -Eo "${YB_VERSION}-b[0-9]+")
 YB_HOME=/home/${USER}/yugabyte-db
 YB_DL_BASE="https://downloads.yugabyte.com/releases"
 YB_PACKAGE_URL="${YB_DL_BASE}/${YB_VERSION}/yugabyte-${YB_RELEASE}-linux-x86_64.tar.gz"
